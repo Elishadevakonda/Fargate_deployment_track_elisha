@@ -27,7 +27,7 @@ resource "aws_route" "public_internet_access" {
 # Public Subnet 1 (AZ1)
 resource "aws_subnet" "public_1" {
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.10.0/24" # ✅ Changed to avoid conflict
+  cidr_block              = "10.0.10.0/24"
   map_public_ip_on_launch = true
   availability_zone       = "us-east-1a"
 }
@@ -35,7 +35,7 @@ resource "aws_subnet" "public_1" {
 # Public Subnet 2 (AZ2)
 resource "aws_subnet" "public_2" {
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.20.0/24" # ✅ Changed to avoid conflict
+  cidr_block              = "10.0.20.0/24" 
   map_public_ip_on_launch = true
   availability_zone       = "us-east-1b"
 }
@@ -54,7 +54,7 @@ resource "aws_route_table_association" "public_assoc_2" {
 # Private Subnet (for ECS tasks)
 resource "aws_subnet" "private" {
   vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.30.0/24" # ✅ Changed to avoid conflict
+  cidr_block        = "10.0.30.0/24" # 
   availability_zone = "us-east-1b"
 }
 
@@ -135,7 +135,7 @@ resource "aws_lb" "alb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
-  subnets            = [aws_subnet.public_1.id, aws_subnet.public_2.id] # ✅ Uses two subnets in different AZs
+  subnets            = [aws_subnet.public_1.id, aws_subnet.public_2.id] # 
 }
 
 # Create Target Group for ALB
