@@ -14,28 +14,26 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git credentialsId: 'git_2', url: 'https://github.com/Elishadevakonda/Fargate_deployment_track_elisha.git'
+                git credentialsId: 'git', url: 'https://github.com/Elishadevakonda/Fargate_deployment_track_elisha.git'
             }
         }
 
-        stage('Terraform Lint') {
+        stage('Terraform Format') {
             steps {
-                sh 'terraform fmt -check'
+                sh 'terraform fmt'
             }
         }
 
-        stage('Terraform Init & Plan') {
+        stage('Terraform Init & Plan') {  
             steps {
-                sh '''
-                terraform init
-                terraform plan -out=tfplan
-                '''
-            }
-        }
-
-        stage('Terraform Apply') {
-            steps {
-                sh 'terraform apply -auto-approve tfplan'
+                withCredentials([usernamePassword(credentialsId: 'aws-credentials', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        terraform init
+                        terraform plan
+                    '''
+                }
             }
         }
 		
@@ -48,8 +46,7 @@ pipeline {
                     '''
                 }
             }
-
-        stage('Login to AWS ECR') {
+		stage('Login to AWS ECR') {
             steps {
                 sh '''
                 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
@@ -57,7 +54,7 @@ pipeline {
             }
         }
 
-        stage('Build & Push Docker Images') {
+      stage('Build & Push Docker Images') {
             parallel {
                 stage('Patient Service') {
                     steps {
@@ -79,8 +76,7 @@ pipeline {
                 }
             }
         }
-
-        stage('Deploy to ECS') {
+    stage('Deploy to ECS') {
             parallel {
                 stage('Deploy Patient Service') {
                     steps {
@@ -98,4 +94,6 @@ pipeline {
                 }
             }
         }
+		
     }
+}
