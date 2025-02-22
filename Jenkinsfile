@@ -14,7 +14,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/Elishadevakonda/Fargate_deployment_track_elisha.git'
+                git credentialsId: 'git_2', url: 'https://github.com/Elishadevakonda/Fargate_deployment_track_elisha.git'
             }
         }
 
@@ -38,6 +38,16 @@ pipeline {
                 sh 'terraform apply -auto-approve tfplan'
             }
         }
+		
+		steps {
+                withCredentials([usernamePassword(credentialsId: 'aws-credentials', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        terraform apply -auto-approve tfplan
+                    '''
+                }
+            }
 
         stage('Login to AWS ECR') {
             steps {
@@ -89,10 +99,3 @@ pipeline {
             }
         }
     }
-
-    post {
-        always {
-            sh 'terraform destroy -auto-approve'
-        }
-    }
-}
